@@ -5,9 +5,9 @@ DEEP ADDRESS RECOGNITION TECHNOLOGY
 [ ![Download](https://api.bintray.com/packages/janishar/mindorks/paracamera/images/download.svg) ](https://bintray.com/janishar/mindorks/paracamera/_latestVersion)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ParaCamera-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4415)
 
-##Android Camera OCR App to recognize addresses on Postal Envelopes.
+## Android Camera OCR App to recognize addresses on Postal Envelopes.
 
-##1. Capture Camera Image
+## 1. Capture Camera Image
 ```java
 // Create global camera reference in an activity or fragment
 Camera camera;
@@ -32,7 +32,7 @@ camera = new Camera.Builder()
             e.printStackTrace();
         }
 ```
-##2. Preprocess the image using OpenCV
+## 2. Preprocess the image using OpenCV
 ```java
                 Utils.bitmapToMat(bitmap, mrgba);
                 Imgproc.cvtColor(mrgba, mrgba, Imgproc.COLOR_RGB2GRAY, 3);
@@ -46,7 +46,7 @@ camera = new Camera.Builder()
                 array = bos.toByteArray();
 ```
 
-##3. Send the image to the Recognition Server
+## 3. Send the image to the Recognition Server
 ```java
                 while (clientConnected) {
                     try {
@@ -65,7 +65,7 @@ camera = new Camera.Builder()
                 }
             }
 ```
-##4. Receive the Recognized Address and Display
+## 4. Receive the Recognized Address and Display
 ```java
                         socket = serverSocket.accept();
 
