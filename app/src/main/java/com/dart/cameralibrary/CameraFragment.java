@@ -1,10 +1,14 @@
 package com.dart.cameralibrary;
 
+import android.app.AlarmManager;
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.service.wallpaper.WallpaperService;
+import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringDef;
 import android.util.Log;
@@ -16,6 +20,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +42,7 @@ import org.opencv.imgproc.LineSegmentDetector;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.content.ContentValues.TAG;
+import static android.content.Context.ALARM_SERVICE;
 import static org.opencv.imgproc.Imgproc.ADAPTIVE_THRESH_MEAN_C;
 import static org.opencv.imgproc.Imgproc.THRESH_BINARY;
 import static org.opencv.imgproc.Imgproc.THRESH_OTSU;
@@ -46,8 +53,10 @@ import com.dart.paracamera.Camera;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -60,16 +69,21 @@ import java.util.concurrent.Exchanger;
 public class CameraFragment extends Fragment {
     private ImageView picFrame;
     private TextView textView;
+    private RadioButton english;
+    private RadioGroup language;
+    public static Boolean lFlag = false;
+    private RadioButton urdu;
     private Camera camera;
     private Socket socket;
     private ServerSocket serverSocket = null;
     public boolean clientConnected = false;
     public boolean serverConnected = false;
     private String ocrOutput = "";
+    private AlarmManager alarm_Manager;
 
 
     private static int SERVERPORT = 10000;
-    private static String SERVER_IP = "192.168.1.6";
+    public static String SERVER_IP = "111.68.101.28";
 
     private Mat mIntermediateMat;
     private Bitmap bitmap;
@@ -85,7 +99,20 @@ public class CameraFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.result, container, false);
         picFrame = (ImageView) rootView.findViewById(R.id.picFrame);
         textView = (TextView) rootView.findViewById(R.id.ocrOutput);
+        language = (RadioGroup) rootView.findViewById(R.id.LangGroup);
+//        int id = language.getCheckedRadioButtonId();
+//        english = (RadioButton) rootView.findViewById(id);
+//        lFlag = english.isChecked();
+        alarm_Manager = (AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
 //        EditText ipAddr = (EditText)rootView.findViewById(R.id.ip_address);
+//        language.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+//            @Override
+//            public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+//                if (checkedId == R.id.English){
+//                    lFlag = true;
+//                }
+//            }
+//        });
 //        setServerIp(ipAddr.getText().toString());
         return rootView;
     }
@@ -137,14 +164,14 @@ public class CameraFragment extends Fragment {
                 bitmap.compress(Bitmap.CompressFormat.PNG, 0 /*ignored for PNG*/, bos);
                 array = bos.toByteArray();
 
-                synchronized (this) {
-                    if (!serverConnected){
-                        if (!SERVER_IP.equals("")) {
-                            Thread sThread = new Thread(new ServerThread());
-                            sThread.start();
-                        }
-                    }
-                }
+//                synchronized (this) {
+//                    if (!serverConnected){
+//                        if (!SERVER_IP.equals("")) {
+//                            Thread sThread = new Thread(new ServerThread());
+//                            sThread.start();
+//                        }
+//                    }
+//                }
                 if (!clientConnected) {
                     if (!SERVER_IP.equals("")) {
                         Thread cThread = new Thread(new ClientThread());
@@ -162,7 +189,8 @@ public class CameraFragment extends Fragment {
 //                        sThread.start();
 //                    }
 //                }
-            } else {
+            }
+            else {
                 Toast.makeText(getActivity().getApplicationContext(), "Picture not taken!", Toast.LENGTH_SHORT).show();
             }
         }
@@ -350,29 +378,54 @@ public class CameraFragment extends Fragment {
     }
 
     public class ClientThread implements Runnable {
+        private BufferedReader input;
+        Handler handler = new Handler();
         public void run() {
             try {
                 InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
                 Log.d("ClientActivity", "C: Connecting...");
                 socket = new Socket(serverAddr, SERVERPORT);
                 clientConnected = true;
-                while (clientConnected) {
+                StringBuilder stringBuilder = new StringBuilder();
+//                while (clientConnected) {
                     try {
 
                         Log.d("ClientActivity", "C: Sending command.");
 
                         OutputStream output = socket.getOutputStream();
                         Log.d("ClientActivity", "C: image writing.");
+
+                        if (lFlag)
+                            output.write("ENGLISH\n".getBytes());
                         output.write(array);
                         output.flush();
                         // out.println("Hey Server!");
                         Log.d("ClientActivity", "C: Sent.");
+                        //output.close();
+                    }
+                    catch(Exception e){
+                            e.printStackTrace();
+                    }
+                    try{
+                        this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                        String line = null;
+                        while ((line = input.readLine()) != null) {
+                            stringBuilder.append(line + '\n');
+                        }
+                        Log.d("Server Reply: ", "Server Reply Received!");
+                        ocrOutput = stringBuilder.toString();
+
+                        handler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                textView.setText(ocrOutput);
+                            }
+                        });
 
                     } catch (Exception e) {
                         Log.e("ClientActivity", "S: Error", e);
                     }
-                    clientConnected = false;
-                }
+
                 socket.close();
                 Log.d("ClientActivity", "C: Closed.");
             } catch (Exception e) {
@@ -399,24 +452,19 @@ public class CameraFragment extends Fragment {
         public void run() {
             synchronized (this) {
                 Socket socket = null;
-
                 try {
-                    serverSocket = new ServerSocket(SERVERPORT);
+                    InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
+                    socket = new Socket(serverAddr, SERVERPORT);
                     serverConnected = true;
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
-                    serverConnected = false;
                 }
-                StringBuilder stringBuilder = new StringBuilder();
                 while (!Thread.currentThread().isInterrupted() && serverConnected) {
-
                     try {
-
-                        socket = serverSocket.accept();
-
-                        Log.i("Server Thread:", "Started!");
                         this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                         String line = null;
+                        StringBuilder stringBuilder = new StringBuilder();
+
                         while ((line = input.readLine()) != null) {
                             stringBuilder.append(line + '\n');
                         }
@@ -428,21 +476,63 @@ public class CameraFragment extends Fragment {
                                 textView.setText(ocrOutput);
                             }
                         });
-
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
-                        serverConnected = false;
                     }
-                }
-                try {
 
-//                   serverSocket.close();
-                    serverConnected = false;
+                }
+
+                try {
+                    socket.close();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
+
+
+//                try {
+//                    serverSocket = new ServerSocket(SERVERPORT);
+//                    serverConnected = true;
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                    serverConnected = false;
+//                }
+//                StringBuilder stringBuilder = new StringBuilder();
+//                while (!Thread.currentThread().isInterrupted() && serverConnected) {
+//
+//                    try {
+//
+//                        socket = serverSocket.accept();
+//
+//                        Log.i("Server Thread:", "Started!");
+//                        this.input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+//                        String line = null;
+//                        while ((line = input.readLine()) != null) {
+//                            stringBuilder.append(line + '\n');
+//                        }
+//                        ocrOutput = stringBuilder.toString();
+//
+//                        handler.post(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                textView.setText(ocrOutput);
+//                            }
+//                        });
+//
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        serverConnected = false;
+//                    }
+//                }
+//                try {
+//
+////                   serverSocket.close();
+//                    serverConnected = false;
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
         protected void onStop() {
             try {
                 // MAKE SURE YOU CLOSE THE SOCKET UPON EXITING

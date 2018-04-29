@@ -5,11 +5,17 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.IdRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
+
+import com.dart.paracamera.Camera;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -43,22 +49,39 @@ public class CameraActivity extends AppCompatActivity {
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_menu);
-        //setContentView(R.layout.activity_camera);
 
-        final Button runButton = (Button) findViewById(R.id.start_button);
+        //setContentView(R.layout.activity_camera);
+        final RadioGroup lang = (RadioGroup)findViewById(R.id.LangGroup);
+        lang.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+                if (checkedId == R.id.English)
+                    CameraFragment.lFlag = true;
+                if (checkedId == R.id.Urdu)
+                    CameraFragment.lFlag = false;
+            }
+        });
+
+        final ImageButton runButton = (ImageButton) findViewById(R.id.start_button);
         runButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 setContentView(R.layout.activity_camera);
                 final Button button = (Button) findViewById(R.id.OKbutton);
                 button.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
-                        onBackPressed();
+                        Intent mStartActivity = new Intent(CameraActivity.this, CameraActivity.class);
+                        int mPendingIntentId = 123456;
+                        PendingIntent mPendingIntent = PendingIntent.getActivity(CameraActivity.this, mPendingIntentId, mStartActivity,
+                                PendingIntent.FLAG_CANCEL_CURRENT);
+                        AlarmManager mgr = (AlarmManager) CameraActivity.this.getSystemService(Context.ALARM_SERVICE);
+                        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 10, mPendingIntent);
+                        System.exit(0);
                     }
                 });
             }
         });
 
-        final Button aboutButton = (Button) findViewById(R.id.about_button);
+        final ImageButton aboutButton = (ImageButton) findViewById(R.id.about_button);
         aboutButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(), "Developed by KUMAIL, NOOR, FERJAD!", Toast.LENGTH_SHORT).show();
@@ -70,7 +93,7 @@ public class CameraActivity extends AppCompatActivity {
         ipButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(), "Server IP Set!", Toast.LENGTH_SHORT).show();
-
+                CameraFragment.SERVER_IP = findViewById(R.id.ip_address).toString();
             }
         });
 
@@ -84,13 +107,7 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     public void onBackPressed(){
-        Intent mStartActivity = new Intent(CameraActivity.this, CameraActivity.class);
-        int mPendingIntentId = 123456;
-        PendingIntent mPendingIntent = PendingIntent.getActivity(CameraActivity.this, mPendingIntentId, mStartActivity,
-                PendingIntent.FLAG_CANCEL_CURRENT);
-        AlarmManager mgr = (AlarmManager) CameraActivity.this.getSystemService(Context.ALARM_SERVICE);
-        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 100, mPendingIntent);
-        System.exit(0);
+        this.finish();
     }
 }
 
