@@ -6,6 +6,8 @@ DEEP ADDRESS RECOGNITION TECHNOLOGY
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ParaCamera-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4415)
 
 ## Android Camera OCR App to recognize addresses on Postal Envelopes.
+## RECOGNIZES BOTH ENGLISH & URDU HANDWRITTEN ADDRESSES
+## Sends data to DART Server.
 
 ## 1. Capture Camera Image
 ```java
