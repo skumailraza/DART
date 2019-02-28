@@ -6,7 +6,7 @@ DEEP ADDRESS RECOGNITION TECHNOLOGY
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ParaCamera-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4415)
 
 ## Android Camera OCR App to recognize addresses on Postal Envelopes.
-- Based on a Custom Deep Neural Network Architecture (CRNN) designed and jointly trained on custom build, most comprehensive URDU Handwriting Recognition data-set: NUST-URDUHR Dataset and Forms Dataset for English.
+- Based on a Custom Deep Neural Network Architecture (CRNN) designed and jointly trained on custom build, most comprehensive URDU Handwriting Recognition data-set: NUST-UHWR Dataset and Forms Dataset for English.
 
 - RECOGNIZES BOTH ENGLISH & URDU HANDWRITTEN ADDRESSES
 - Sends and receives data to DART high performance GPU Server.
