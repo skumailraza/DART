@@ -2,12 +2,14 @@
 DEEP ADDRESS RECOGNITION TECHNOLOGY
 
 
-[ ![Download](https://api.bintray.com/packages/janishar/mindorks/paracamera/images/download.svg) ](https://bintray.com/janishar/mindorks/paracamera/_latestVersion)
+[ ![Download](https://api.bintray.com/packages/janishar/mindorks/paracamera/images/download.svg) ](https://play.google.com/store/apps/details?id=com.mindorks.cameralibrary&hl=en)
 [![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-ParaCamera-brightgreen.svg?style=flat)](http://android-arsenal.com/details/1/4415)
 
 ## Android Camera OCR App to recognize addresses on Postal Envelopes.
-## RECOGNIZES BOTH ENGLISH & URDU HANDWRITTEN ADDRESSES
-## Sends data to DART Server.
+- Based on a Custom Deep Neural Network Architecture (CRNN) designed and jointly trained on custom build, most comprehensive URDU Handwriting Recognition data-set: NUST-URDUHR Dataset and Forms Dataset for English.
+
+#### RECOGNIZES BOTH ENGLISH & URDU HANDWRITTEN ADDRESSES
+#### Sends and receives data to DART high performance GPU Server.
 
 ## 1. Capture Camera Image
 ```java
